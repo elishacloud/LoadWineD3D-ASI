@@ -73,7 +73,7 @@ void *Hook::HotPatch(void *apiproc, const char *apiname, void *hookproc)
 	else
 	{
 		VirtualProtect(patch_address, 12, dwPrevProtect, &dwPrevProtect); // restore protection
-		
+
 		// check it wasn't patched already
 		if ((*patch_address == 0xE9) && (*(WORD *)apiproc == 0xF9EB))
 		{
@@ -129,6 +129,8 @@ bool Hook::UnhookHotPatch(void *apiproc, const char *apiname, void *hookproc)
 #endif
 		return true;
 	}
+
+	Logging::LogFormat("HotPatch: failed to unhook '%s' at addr=%p", apiname, apiproc);
 
 	VirtualProtect(patch_address, 12, dwPrevProtect, &dwPrevProtect); // restore protection
 #ifdef _DEBUG

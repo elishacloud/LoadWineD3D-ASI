@@ -115,31 +115,29 @@ extern DLLEXPORTS dllexports[ArraySize];
 	visit(60) \
 
 static char* d3d8proc[] = {
-	"D3D8GetSWInfo",
 	"Direct3DCreate8",
 	"ValidatePixelShader",
 	"ValidateVertexShader",
+	"D3D8GetSWInfo",
 };
 
 static char* d3d9proc[] = {
-	"Direct3DShaderValidatorCreate9",
+	"Direct3DCreate9",
+	"Direct3DCreate9Ex",
 	"D3DPERF_BeginEvent",
 	"D3DPERF_EndEvent",
-	"D3DPERF_GetStatus",
 	"D3DPERF_QueryRepeatFrame",
 	"D3DPERF_SetMarker",
 	"D3DPERF_SetOptions",
 	"D3DPERF_SetRegion",
-	"Direct3DCreate9",
-	"Direct3DCreate9Ex",
+	"D3DPERF_GetStatus",
+	"Direct3DShaderValidatorCreate9",
 };
 
 static char* d3d10proc[] = {
-	"D3D10CompileEffectFromMemory",
-	"D3D10CompileShader",
-	"D3D10CreateBlob",
 	"D3D10CreateDevice",
 	"D3D10CreateDeviceAndSwapChain",
+	"D3D10CreateBlob",
 	"D3D10CreateEffectFromMemory",
 	"D3D10CreateStateBlock",
 	"D3D10DisassembleShader",
@@ -151,6 +149,8 @@ static char* d3d10proc[] = {
 	"D3D10GetShaderDebugInfo",
 	"D3D10GetVertexShaderProfile",
 	"D3D10ReflectShader",
+	"D3D10CompileEffectFromMemory",
+	"D3D10CompileShader",
 	"D3D10StateBlockMaskDifference",
 	"D3D10StateBlockMaskDisableAll",
 	"D3D10StateBlockMaskDisableCapture",
@@ -167,10 +167,10 @@ static char* d3d10coreproc[] = {
 };
 
 static char* d3d11proc[] = {
-	"D3D11CoreCreateDevice",
-	"D3D11CoreRegisterLayers",
 	"D3D11CreateDevice",
 	"D3D11CreateDeviceAndSwapChain",
+	"D3D11CoreCreateDevice",
+	"D3D11CoreRegisterLayers",
 };
 
 static char* ddrawproc[] = {
@@ -188,8 +188,8 @@ static char* ddrawproc[] = {
 };
 
 static char* dxgiproc[] = {
-	"CreateDXGIFactory",
-	"CreateDXGIFactory1",
 	"DXGID3D10CreateDevice",
 	"DXGID3D10RegisterLayers",
+	"CreateDXGIFactory",
+	"CreateDXGIFactory1",
 };

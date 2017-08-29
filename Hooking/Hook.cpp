@@ -156,6 +156,7 @@ FARPROC Hook::GetFunctionAddress(HMODULE hModule, LPCSTR FunctionName)
 
 		if (pIDH->e_magic != IMAGE_DOS_SIGNATURE)
 		{
+			Logging::LogFormat("GetFunctionAddress: %s is not IMAGE_DOS_SIGNATURE.", FunctionName);
 			return ProcAddress;
 		}
 
@@ -163,11 +164,13 @@ FARPROC Hook::GetFunctionAddress(HMODULE hModule, LPCSTR FunctionName)
 
 		if (pINH->Signature != IMAGE_NT_SIGNATURE)
 		{
+			Logging::LogFormat("GetFunctionAddress: %s is not IMAGE_NT_SIGNATURE.", FunctionName);
 			return ProcAddress;
 		}
 
 		if (pINH->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress == 0)
 		{
+			Logging::LogFormat("GetFunctionAddress: Could not get VirtualAddress in %s.", FunctionName);
 			return ProcAddress;
 		}
 
@@ -181,7 +184,7 @@ FARPROC Hook::GetFunctionAddress(HMODULE hModule, LPCSTR FunctionName)
 		{
 			if (!strcmp(FunctionName, (char*)hModule + Name[i]))
 			{
-				return (FARPROC)((LPBYTE)hModule + Address[Ordinal[i]]);
+				return (FARPROC)((DWORD)Address[Ordinal[i]] + (DWORD)hModule);
 			}
 		}
 	}

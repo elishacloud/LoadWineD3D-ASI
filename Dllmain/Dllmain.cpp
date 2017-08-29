@@ -18,6 +18,8 @@
 #include "Dllmain.h"
 #include "Logging.h"
 #include "..\Hooking\Hook.h"
+#include <stdio.h>
+#include <psapi.h>
 
 struct HOOKING
 {
@@ -36,6 +38,50 @@ std::vector<HOOKING> HookedProcs;
 
 VISIT_PROCS(CREATE_PROC_STUB)
 
+HMODULE GetModule(char* PrcoName)
+{
+	DWORD processID = GetCurrentProcessId();
+	HMODULE hMods[1024];
+	HANDLE hProcess;
+	DWORD cbNeeded;
+
+	// Get a handle to the process.
+	hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, processID);
+	if (!hProcess)
+	{
+		return nullptr;
+	}
+
+	// Get a list of all the modules in this process.
+	if (EnumProcessModules(hProcess, hMods, sizeof(hMods), &cbNeeded))
+	{
+		for (UINT i = 0; i < (cbNeeded / sizeof(HMODULE)); i++)
+		{
+			char szModName[MAX_PATH];
+
+			// Get the full path to the module's file.
+			if (GetModuleFileNameEx(hProcess, hMods[i], szModName,
+				sizeof(szModName) / sizeof(char)))
+			{
+				// Check the module name.
+				if (!_strcmpi(PrcoName, szModName))
+				{
+					// Release the handle to the process.
+					CloseHandle(hProcess);
+
+					// Return module handle
+					return hMods[i];
+				}
+			}
+		}
+	}
+
+	// Release the handle to the process.
+	CloseHandle(hProcess);
+
+	return nullptr;
+}
+
 void AttachProcs(HMODULE hModule)
 {
 	// Init vars
@@ -45,14 +91,11 @@ void AttachProcs(HMODULE hModule)
 	for (int x = 0; x < ArraySize; x++)
 	{
 		// Load dll from script folder
-		if (!Script_dll[x])
-		{
-			GetModuleFileName(hModule, path, sizeof(path));
-			strcpy_s(strrchr(path, '\\'), MAX_PATH - strlen(path), "\\");
-			strcat_s(path, MAX_PATH, dllname[x]);
-			Script_dll[x] = LoadLibrary(path);
-			Logging::LOG << "Checking " << path << "\n";
-		}
+		GetModuleFileName(hModule, path, sizeof(path));
+		strcpy_s(strrchr(path, '\\'), MAX_PATH - strlen(path), "\\");
+		strcat_s(path, MAX_PATH, dllname[x]);
+		Script_dll[x] = LoadLibrary(path);
+		Logging::LOG << "Checking " << path << "\n";
 
 		// If WineD3D dll found
 		if (Script_dll[x])
@@ -60,27 +103,25 @@ void AttachProcs(HMODULE hModule)
 			Logging::LOG << "Found " << dllname[x] << "!\n";
 
 			// Load dll from exe folder
-			if (!EXE_dll[x])
+			GetModuleFileName(nullptr, path, sizeof(path));
+			strcpy_s(strrchr(path, '\\'), MAX_PATH - strlen(path), "\\");
+			strcat_s(path, MAX_PATH, dllname[x]);
+			EXE_dll[x] = LoadLibrary(path);
+			if (EXE_dll[x])
 			{
-				GetModuleFileName(nullptr, path, sizeof(path));
-				strcpy_s(strrchr(path, '\\'), MAX_PATH - strlen(path), "\\");
-				strcat_s(path, MAX_PATH, dllname[x]);
-				EXE_dll[x] = LoadLibrary(path);
-				Logging::LOG << path << "\n";
+				Logging::LOG << "Loaded " << path << "\n";
 			}
 
 			// Load dll from System32 folder
-			if (!System32_dll[x])
-			{
-				GetSystemDirectory(path, MAX_PATH);
-				strcat_s(path, MAX_PATH, "\\");
-				strcat_s(path, MAX_PATH, dllname[x]);
-				System32_dll[x] = LoadLibrary(path);
-				Logging::LOG << path << "\n";
-			}
+			GetSystemDirectory(path, MAX_PATH);
+			strcat_s(path, MAX_PATH, "\\");
+			strcat_s(path, MAX_PATH, dllname[x]);
+			System32_dll[x] = LoadLibrary(path);
+			HMODULE h_S32_dll = GetModule(path);
+			Logging::LOG << path << " load addr=" << System32_dll[x] << " module addr=" << h_S32_dll << "\n";
 
 			// Check dlls
-			if (System32_dll[x] && EXE_dll[x] != Script_dll[x])
+			if (h_S32_dll && EXE_dll[x] != Script_dll[x])
 			{
 				// Loop through each export item
 				for (int y = 0; y < dllexports[x].ArraySize; y++)
@@ -89,7 +130,7 @@ void AttachProcs(HMODULE hModule)
 
 					// Get export address
 					FARPROC Script_proc = Hook::GetFunctionAddress(Script_dll[x], dllexports[x].Export[y]);
-					FARPROC System32_proc = Hook::GetFunctionAddress(System32_dll[x], dllexports[x].Export[y]);
+					FARPROC System32_proc = Hook::GetFunctionAddress(h_S32_dll, dllexports[x].Export[y]);
 					FARPROC EXE_proc = (FARPROC)1;
 					if (EXE_dll[x])
 					{
@@ -109,7 +150,6 @@ void AttachProcs(HMODULE hModule)
 						}
 
 						// System -> Wrapper
-						Logging::Log() << "Hooking " << dllname[x] << " API " << dllexports[x].Export[y] << " ...\n";
 						HOOKING NewHook;
 						NewHook.apiname = dllexports[x].Export[y];
 						NewHook.hookproc = wrapper_func[Counter];
@@ -120,7 +160,7 @@ void AttachProcs(HMODULE hModule)
 							Counter++;
 
 							// Logging
-							Logging::Log() << "Success! Hooked " << dllexports[x].Export[y] << " count " << Counter << "\n";
+							Logging::Log() << "Hooked " << dllexports[x].Export[y] << " count " << Counter << " addr=" << System32_proc << "\n";
 
 							// Record hooked procs
 							HookedProcs.push_back(NewHook);
@@ -136,8 +176,6 @@ void AttachProcs(HMODULE hModule)
 bool APIENTRY DllMain(HMODULE hModule, DWORD fdwReason, LPVOID lpReserved)
 {
 	UNREFERENCED_PARAMETER(lpReserved);
-
-	static bool RunOnThreadFlag = false;
 
 	switch (fdwReason)
 	{
@@ -155,22 +193,9 @@ bool APIENTRY DllMain(HMODULE hModule, DWORD fdwReason, LPVOID lpReserved)
 
 		// Attach WineD3D procs
 		AttachProcs(hModule);
-
-		// Set flag to run on next thread
-		RunOnThreadFlag = true;
 	}
 	break;
 	case DLL_THREAD_ATTACH:
-		if (RunOnThreadFlag)
-		{
-			RunOnThreadFlag = false;
-
-			// Logging
-			Logging::Log() << "Starting thread...\n";
-
-			// Try once more to attach WineD3D procs in case some are missed
-			AttachProcs(hModule);
-		}
 		break;
 	case DLL_THREAD_DETACH:
 		break;

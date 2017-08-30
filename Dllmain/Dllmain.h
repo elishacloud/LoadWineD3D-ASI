@@ -34,7 +34,6 @@ struct DLLEXPORTS
 	char **Export;
 	int ArraySize;
 };
-extern DLLEXPORTS dllexports[ArraySize];
 
 #define CREATE_PROC_STUB(procNum) \
 	FARPROC wrapper_proc ## procNum; \

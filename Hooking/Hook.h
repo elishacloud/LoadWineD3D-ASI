@@ -2,11 +2,11 @@
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
-#include "..\DllMain\Logging.h"
 
 namespace Hook
 {
-	FARPROC GetFunctionAddress(HMODULE, LPCSTR);
+	FARPROC GetProcAddress(HMODULE, LPCSTR);
+	HMODULE GetModuleHandle(char*);
 	void *HookAPI(HMODULE, const char *, void *, const char *, void *);
 	void UnhookAPI(HMODULE, const char *, void *, const char *, void *);
 	void *HotPatch(void*, const char*, void*);
@@ -14,9 +14,10 @@ namespace Hook
 	void *IATPatch(HMODULE, DWORD, const char*, void*, const char*, void*);
 	bool UnhookIATPatch(HMODULE, DWORD, const char *, void *, const char *, void *);
 
-	struct HOOKVARS
+	struct HOOKING
 	{
-		void *apiproc = nullptr;
-		void *hookproc = nullptr;
+		void* apiproc;
+		char* apiname;
+		void* hookproc;
 	};
 }

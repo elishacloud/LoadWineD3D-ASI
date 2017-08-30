@@ -35,7 +35,7 @@ applications, and to alter it and redistribute it freely, subject to the followi
       being the original software.
    3. This notice may not be removed or altered from any source distribution.
 
-This LoadWineD3D ASI is taken primarily from code in [DxWrapper](https://github.com/elishacloud/dxwrapper).  But also inclides code from the following:
+This LoadWineD3D ASI is taken primarily from code in [DxWrapper](https://github.com/elishacloud/dxwrapper).  But also includes code from the following:
 
  - [DxWnd](https://sourceforge.net/projects/dxwnd/): Includes the HotPatch and IATPatch code.
  - [Parsing PE export table](http://www.rohitab.com/discuss/topic/40594-parsing-pe-export-table/): Includes the full GetProcAddress.

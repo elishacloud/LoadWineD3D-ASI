@@ -25,6 +25,7 @@
 // addr = address of the original function
 
 #include "Hook.h"
+#include "..\DllMain\Logging.h"
 
 // Hook API using hot patch
 void *Hook::HotPatch(void *apiproc, const char *apiname, void *hookproc)

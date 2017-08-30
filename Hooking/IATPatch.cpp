@@ -25,6 +25,7 @@
 // addr = address of the original function
 
 #include "Hook.h"
+#include "..\DllMain\Logging.h"
 
 // Hook API using IAT patch
 void *Hook::IATPatch(HMODULE module, DWORD ordinal, const char *dll, void *apiproc, const char *apiname, void *hookproc)

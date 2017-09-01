@@ -182,6 +182,34 @@ bool Hook::UnhookHotPatch(void *apiproc, const char *apiname, void *hookproc)
 	patch_address = ((BYTE *)apiproc) - 5;
 	orig_address = (BYTE *)apiproc + 2;
 
+	// Check if this address is stored in the vector
+	BYTE lpBuffer[12];
+	for (UINT x = 0; x < HotPatchProcs.size(); ++x)
+	{
+		// Read memory
+		if (ReadProcessMemory(GetCurrentProcess(), HotPatchProcs[x].procaddr, lpBuffer, 12, nullptr))
+		{
+			// Check if memory is as expected
+			if (!memcmp(lpBuffer, HotPatchProcs[x].lpNewBuffer, 12))
+			{
+				// Write to memory
+				memcpy(HotPatchProcs[x].procaddr, HotPatchProcs[x].lpOrgBuffer, 12);
+
+				// If not at the end then move back to current loc and pop_back
+				if (x + 1 != HotPatchProcs.size())
+				{
+					HotPatchProcs[x].procaddr = HotPatchProcs.back().procaddr;
+					memcpy(HotPatchProcs[x].lpOrgBuffer, HotPatchProcs.back().lpOrgBuffer, 12);
+					memcpy(HotPatchProcs[x].lpNewBuffer, HotPatchProcs.back().lpNewBuffer, 12);
+					HotPatchProcs.pop_back();
+				}
+
+				// Return
+				return true;
+			}
+		}
+	}
+
 	// Entry point could be at the top of a page? so VirtualProtect first to make sure patch_address is readable
 	if (!VirtualProtect(patch_address, 12, PAGE_EXECUTE_WRITECOPY, &dwPrevProtect))
 	{

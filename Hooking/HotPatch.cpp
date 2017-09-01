@@ -24,8 +24,21 @@
 // 1 = already patched
 // addr = address of the original function
 
+#include <vector>
 #include "Hook.h"
 #include "..\DllMain\Logging.h"
+
+namespace Hook
+{
+	struct HOTPATCH
+	{
+		BYTE lpOrgBuffer[12];
+		BYTE lpNewBuffer[12];
+		void* procaddr;
+	};
+
+	std::vector<HOTPATCH> HotPatchProcs;
+}
 
 // Hook API using hot patch
 void *Hook::HotPatch(void *apiproc, const char *apiname, void *hookproc)
@@ -59,11 +72,23 @@ void *Hook::HotPatch(void *apiproc, const char *apiname, void *hookproc)
 		memcmp("\x90\x90\x90\x90\x90\x8B\xFF", patch_address, 7) && memcmp("\x90\x90\x90\x90\x90\x89\xFF", patch_address, 7) &&		// Make sure it is a hotpatchable image... check for 5 nops followed by mov edi,edi
 		memcmp("\xCC\xCC\xCC\xCC\xCC\x8B\xFF", patch_address, 7) && memcmp("\xCC\xCC\xCC\xCC\xCC\x89\xFF", patch_address, 7)))		// For debugging
 	{
+		// Backup memory
+		HOTPATCH tmpMemory;
+		tmpMemory.procaddr = patch_address;
+		ReadProcessMemory(GetCurrentProcess(), patch_address, tmpMemory.lpOrgBuffer, 12, nullptr);
+
 		*patch_address = 0xE9; // jmp (4-byte relative)
 		*((DWORD *)(patch_address + 1)) = (DWORD)hookproc - (DWORD)patch_address - 5; // relative address
 		*((WORD *)apiproc) = 0xF9EB; // should be atomic write (jmp $-5)
 
-		VirtualProtect(patch_address, 12, dwPrevProtect, &dwPrevProtect); // restore protection
+		// Get memory after update
+		ReadProcessMemory(GetCurrentProcess(), patch_address, tmpMemory.lpNewBuffer, 12, nullptr);
+
+		// Save memory
+		HotPatchProcs.push_back(tmpMemory);
+
+		// restore protection
+		VirtualProtect(patch_address, 12, dwPrevProtect, &dwPrevProtect);
 #ifdef _DEBUG
 		Logging::LogFormat("HotPatch: api=%s addr=%p->%p hook=%p", apiname, apiproc, orig_address, hookproc);
 #endif
@@ -85,9 +110,57 @@ void *Hook::HotPatch(void *apiproc, const char *apiname, void *hookproc)
 		else
 		{
 			Logging::LogFormat("HotPatch: '%s' is not patch aware at addr=%p", apiname, apiproc);
+
+			// Log memory
+			BYTE lpBuffer[12];
+			if (ReadProcessMemory(GetCurrentProcess(), patch_address, lpBuffer, 12, nullptr))
+			{
+				char buffer[120] = { '\0' };
+				sprintf_s(buffer, "Bytes in memory are: \\x%02X\\x%02X\\x%02X\\x%02X\\x%02X\\x%02X\\x%02X\\x%02X\\x%02X\\x%02X\\x%02X\\x%02X",
+					lpBuffer[0], lpBuffer[1], lpBuffer[2], lpBuffer[3],
+					lpBuffer[4], lpBuffer[5], lpBuffer[6], lpBuffer[7],
+					lpBuffer[8], lpBuffer[9], lpBuffer[10], lpBuffer[11]);
+				Logging::LogFormat(buffer);
+			}
+
 			return 0; // not hot patch "aware"
 		}
 	}
+}
+
+// Restore all addresses hooked
+bool Hook::UnHotPatchAll()
+{
+	bool flag = true;
+	BYTE lpBuffer[12];
+	while (HotPatchProcs.size() != 0)
+	{
+		// Read memory
+		if (ReadProcessMemory(GetCurrentProcess(), HotPatchProcs.back().procaddr, lpBuffer, 12, nullptr))
+		{
+			// Check if memory is as expected
+			if (!memcmp(lpBuffer, HotPatchProcs.back().lpNewBuffer, 12))
+			{
+				// Write to memory
+				memcpy(HotPatchProcs.back().procaddr, HotPatchProcs.back().lpOrgBuffer, 12);
+			}
+			else
+			{
+				// Memory different than expected
+				flag = false;
+				Logging::LogFormat("UnHotPatchAll: Memory different than expected procaddr: %p", HotPatchProcs.back().procaddr);
+			}
+		}
+		else
+		{
+			// Failed to read memory
+			flag = false;
+			Logging::LogFormat("UnHotPatchAll: Failed to read memory procaddr: %p", HotPatchProcs.back().procaddr);
+		}
+		HotPatchProcs.pop_back();
+	}
+	HotPatchProcs.clear();
+	return flag;
 }
 
 // Unhook hot patched API

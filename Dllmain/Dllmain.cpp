@@ -26,7 +26,6 @@ bool APIENTRY DllMain(HMODULE hModule, DWORD fdwReason, LPVOID lpReserved)
 {
 	UNREFERENCED_PARAMETER(lpReserved);
 
-	static std::vector<Hook::HOOKING> HookedProcs;
 	static std::vector<HMODULE> LoadedDLLs;
 
 	switch (fdwReason)
@@ -126,9 +125,6 @@ bool APIENTRY DllMain(HMODULE hModule, DWORD fdwReason, LPVOID lpReserved)
 
 								// Logging
 								Logging::Log() << "Hooked " << dllexports[x].Export[y] << " count " << Counter << " addr=" << System32_proc << "\n";
-
-								// Record hooked procs
-								HookedProcs.push_back(NewHook);
 							}
 						}
 					}
@@ -145,14 +141,7 @@ bool APIENTRY DllMain(HMODULE hModule, DWORD fdwReason, LPVOID lpReserved)
 	{
 		// Unhook apis
 		Logging::Log() << "Unhooking procs...\n";
-		while (HookedProcs.size() != 0)
-		{
-			// Unhook proc
-			Logging::Log() << "Unhooking " << HookedProcs.back().apiname << "\n";
-			Hook::UnhookHotPatch(HookedProcs.back().apiproc, HookedProcs.back().apiname, HookedProcs.back().hookproc);
-			HookedProcs.pop_back();
-		}
-		HookedProcs.clear();
+		Hook::UnHotPatchAll();
 
 		// Unload dlls
 		Logging::Log() << "Unloading dlls...\n";

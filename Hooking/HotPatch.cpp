@@ -41,7 +41,7 @@ namespace Hook
 }
 
 // Hook API using hot patch
-void *Hook::HotPatch(void *apiproc, const char *apiname, void *hookproc)
+void *Hook::HotPatch(void *apiproc, const char *apiname, void *hookproc, bool forcepatch)
 {
 	DWORD dwPrevProtect;
 	BYTE *patch_address;
@@ -70,13 +70,15 @@ void *Hook::HotPatch(void *apiproc, const char *apiname, void *hookproc)
 	if (!(memcmp("\x90\x90\x90\x90\x90\xEB\x05\x90\x90\x90\x90\x90", patch_address, 12) &&											// Some calls (QueryPerformanceCounter) are sort of hot patched already....
 		memcmp("\xCC\xCC\xCC\xCC\xCC\xEB\x05\xCC\xCC\xCC\xCC\xCC", patch_address, 12) &&											// For debugging
 		memcmp("\x90\x90\x90\x90\x90\x8B\xFF", patch_address, 7) && memcmp("\x90\x90\x90\x90\x90\x89\xFF", patch_address, 7) &&		// Make sure it is a hotpatchable image... check for 5 nops followed by mov edi,edi
-		memcmp("\xCC\xCC\xCC\xCC\xCC\x8B\xFF", patch_address, 7) && memcmp("\xCC\xCC\xCC\xCC\xCC\x89\xFF", patch_address, 7)))		// For debugging
+		memcmp("\xCC\xCC\xCC\xCC\xCC\x8B\xFF", patch_address, 7) && memcmp("\xCC\xCC\xCC\xCC\xCC\x89\xFF", patch_address, 7)) ||	// For debugging
+		((forcepatch && (!memcmp("\x90\x90\x90\x90\x90", patch_address, 5) || !memcmp("\xCC\xCC\xCC\xCC\xCC", patch_address, 5)))))	// Force hook, overwrites data, patched function may not be usable
 	{
 		// Backup memory
 		HOTPATCH tmpMemory;
 		tmpMemory.procaddr = patch_address;
 		ReadProcessMemory(GetCurrentProcess(), patch_address, tmpMemory.lpOrgBuffer, 12, nullptr);
 
+		// Set HotPatch hook
 		*patch_address = 0xE9; // jmp (4-byte relative)
 		*((DWORD *)(patch_address + 1)) = (DWORD)hookproc - (DWORD)patch_address - 5; // relative address
 		*((WORD *)apiproc) = 0xF9EB; // should be atomic write (jmp $-5)
@@ -135,27 +137,41 @@ bool Hook::UnHotPatchAll()
 	BYTE lpBuffer[12];
 	while (HotPatchProcs.size() != 0)
 	{
-		// Read memory
-		if (ReadProcessMemory(GetCurrentProcess(), HotPatchProcs.back().procaddr, lpBuffer, 12, nullptr))
+		// VirtualProtect first to make sure patch_address is readable
+		DWORD dwPrevProtect;
+		if (VirtualProtect(HotPatchProcs.back().procaddr, 12, PAGE_EXECUTE_WRITECOPY, &dwPrevProtect))
 		{
-			// Check if memory is as expected
-			if (!memcmp(lpBuffer, HotPatchProcs.back().lpNewBuffer, 12))
+			// Read memory
+			if (ReadProcessMemory(GetCurrentProcess(), HotPatchProcs.back().procaddr, lpBuffer, 12, nullptr))
 			{
-				// Write to memory
-				memcpy(HotPatchProcs.back().procaddr, HotPatchProcs.back().lpOrgBuffer, 12);
+				// Check if memory is as expected
+				if (!memcmp(lpBuffer, HotPatchProcs.back().lpNewBuffer, 12))
+				{
+					// Write to memory
+					memcpy(HotPatchProcs.back().procaddr, HotPatchProcs.back().lpOrgBuffer, 12);
+				}
+				else
+				{
+					// Memory different than expected
+					flag = false;
+					Logging::LogFormat("UnHotPatchAll: Memory different than expected procaddr: %p", HotPatchProcs.back().procaddr);
+				}
 			}
 			else
 			{
-				// Memory different than expected
+				// Failed to read memory
 				flag = false;
-				Logging::LogFormat("UnHotPatchAll: Memory different than expected procaddr: %p", HotPatchProcs.back().procaddr);
+				Logging::LogFormat("UnHotPatchAll: Failed to read memory procaddr: %p", HotPatchProcs.back().procaddr);
 			}
+
+			// Restore protection
+			VirtualProtect(HotPatchProcs.back().procaddr, 12, dwPrevProtect, &dwPrevProtect);
 		}
 		else
 		{
-			// Failed to read memory
+			// Access denied
 			flag = false;
-			Logging::LogFormat("UnHotPatchAll: Failed to read memory procaddr: %p", HotPatchProcs.back().procaddr);
+			Logging::LogFormat("UnHotPatchAll: access denied. procaddr: %p", HotPatchProcs.back().procaddr);
 		}
 		HotPatchProcs.pop_back();
 	}
@@ -182,30 +198,44 @@ bool Hook::UnhookHotPatch(void *apiproc, const char *apiname, void *hookproc)
 	patch_address = ((BYTE *)apiproc) - 5;
 	orig_address = (BYTE *)apiproc + 2;
 
-	// Check if this address is stored in the vector
+	// Check if this address is stored in the vector and restore memory
 	BYTE lpBuffer[12];
 	for (UINT x = 0; x < HotPatchProcs.size(); ++x)
 	{
-		// Read memory
-		if (ReadProcessMemory(GetCurrentProcess(), HotPatchProcs[x].procaddr, lpBuffer, 12, nullptr))
+		// Check for address
+		if (HotPatchProcs[x].procaddr == patch_address)
 		{
-			// Check if memory is as expected
-			if (!memcmp(lpBuffer, HotPatchProcs[x].lpNewBuffer, 12))
+			// VirtualProtect first to make sure patch_address is readable
+			if (VirtualProtect(HotPatchProcs[x].procaddr, 12, PAGE_EXECUTE_WRITECOPY, &dwPrevProtect))
 			{
-				// Write to memory
-				memcpy(HotPatchProcs[x].procaddr, HotPatchProcs[x].lpOrgBuffer, 12);
-
-				// If not at the end then move back to current loc and pop_back
-				if (x + 1 != HotPatchProcs.size())
+				// Read memory
+				if (ReadProcessMemory(GetCurrentProcess(), HotPatchProcs[x].procaddr, lpBuffer, 12, nullptr))
 				{
-					HotPatchProcs[x].procaddr = HotPatchProcs.back().procaddr;
-					memcpy(HotPatchProcs[x].lpOrgBuffer, HotPatchProcs.back().lpOrgBuffer, 12);
-					memcpy(HotPatchProcs[x].lpNewBuffer, HotPatchProcs.back().lpNewBuffer, 12);
-					HotPatchProcs.pop_back();
+					// Check if memory is as expected
+					if (!memcmp(lpBuffer, HotPatchProcs[x].lpNewBuffer, 12))
+					{
+						// Write to memory
+						memcpy(HotPatchProcs[x].procaddr, HotPatchProcs[x].lpOrgBuffer, 12);
+
+						// If not at the end then move back to current loc and pop_back
+						if (x + 1 != HotPatchProcs.size())
+						{
+							HotPatchProcs[x].procaddr = HotPatchProcs.back().procaddr;
+							memcpy(HotPatchProcs[x].lpOrgBuffer, HotPatchProcs.back().lpOrgBuffer, 12);
+							memcpy(HotPatchProcs[x].lpNewBuffer, HotPatchProcs.back().lpNewBuffer, 12);
+						}
+						HotPatchProcs.pop_back();
+
+						// Restore protection
+						VirtualProtect(patch_address, 12, dwPrevProtect, &dwPrevProtect);
+
+						// Return
+						return true;
+					}
 				}
 
-				// Return
-				return true;
+				// Restore protection
+				VirtualProtect(patch_address, 12, dwPrevProtect, &dwPrevProtect);
 			}
 		}
 	}

@@ -41,26 +41,21 @@ bool APIENTRY DllMain(HMODULE hModule, DWORD fdwReason, LPVOID lpReserved)
 		VISIT_PROCS(SET_FUNC_STUB);
 		VISIT_EXPORTS(SET_DLL_EXPORTS);
 
-		// Enable logging
-		char path[MAX_PATH];
-		GetModuleFileName(hModule, path, MAX_PATH);
-		strcpy_s(strrchr(path, '.'), MAX_PATH - strlen(path), ".log");
-		Logging::Log().open(path, std::ios::trunc);
-
 		// Loop through each WineD3D file
 		for (int x = 0; x < ArraySize; x++)
 		{
 			// Load dll from script folder
+			char path[MAX_PATH];
 			GetModuleFileName(hModule, path, MAX_PATH);
 			strcpy_s(strrchr(path, '\\'), MAX_PATH - strlen(path), "\\");
 			strcat_s(path, MAX_PATH, dllname[x]);
 			HMODULE Script_dll = LoadLibrary(path);
-			Logging::Log() << "Checking " << path << "\n";
+			Logging::Log() << "Checking " << path;
 
 			// If WineD3D dll found
 			if (Script_dll)
 			{
-				Logging::Log() << "Found " << dllname[x] << "!\n";
+				Logging::Log() << "Found " << dllname[x] << "!";
 
 				// Record loaded dll
 				LoadedDLLs.push_back(Script_dll);
@@ -69,33 +64,20 @@ bool APIENTRY DllMain(HMODULE hModule, DWORD fdwReason, LPVOID lpReserved)
 				GetSystemDirectory(path, MAX_PATH);
 				strcat_s(path, MAX_PATH, "\\");
 				strcat_s(path, MAX_PATH, dllname[x]);
-				HMODULE System32_dll = Hook::GetModuleHandle(path);
-
-				// If no handle then load dll from System32 folder
-				if (!System32_dll)
-				{
-					HMODULE t_System32_dll = LoadLibrary(path);
-					System32_dll = Hook::GetModuleHandle(path);
-
-					// Record loaded dll
-					if (t_System32_dll)
-					{
-						LoadedDLLs.push_back(t_System32_dll);
-					}
-					Logging::Log() << path << " loadaddr=" << t_System32_dll << " moduleaddr=" << System32_dll << "\n";
-				}
-				else
-				{
-					Logging::Log() << path << " addr=" << System32_dll << "\n";
-				}
+				HMODULE System32_dll = LoadLibrary(path);
 
 				// Check dlls
 				if (System32_dll)
 				{
+					Logging::Log() << path << " addr=" << System32_dll;
+
+					// Record loaded dll
+					LoadedDLLs.push_back(System32_dll);
+
 					// Loop through each export item
 					for (int y = 0; y < dllexports[x].ArraySize; y++)
 					{
-						Logging::Log() << "Checking " << dllexports[x].Export[y] << " ...\n";
+						Logging::Log() << "Checking " << dllexports[x].Export[y] << " ...";
 
 						// Get export address
 						FARPROC Script_proc = GetProcAddress(Script_dll, dllexports[x].Export[y]);
@@ -109,22 +91,18 @@ bool APIENTRY DllMain(HMODULE hModule, DWORD fdwReason, LPVOID lpReserved)
 							{
 								VISIT_PROCS(SET_PROC_STUB);
 							default:
-								Logging::Log() << "Too many APIs too hook...\n";
+								Logging::Log() << "Too many APIs too hook...";
 								return true;
 							}
 
 							// System -> Wrapper
-							Hook::HOOKING NewHook;
-							NewHook.apiname = dllexports[x].Export[y];
-							NewHook.hookproc = wrapper_func[Counter];
-							NewHook.apiproc = System32_proc;
-							if ((DWORD)Hook::HotPatch(System32_proc, dllexports[x].Export[y], wrapper_func[Counter]) > 1)
+							if ((DWORD)Hook::HotPatch(System32_proc, dllexports[x].Export[y], wrapper_func[Counter], true) > 1)
 							{
 								// Update counter
 								Counter++;
 
 								// Logging
-								Logging::Log() << "Hooked " << dllexports[x].Export[y] << " count " << Counter << " addr=" << System32_proc << "\n";
+								Logging::Log() << "Hooked " << dllexports[x].Export[y] << " count " << Counter << " addr=" << System32_proc;
 							}
 						}
 					}
@@ -140,11 +118,11 @@ bool APIENTRY DllMain(HMODULE hModule, DWORD fdwReason, LPVOID lpReserved)
 	case DLL_PROCESS_DETACH:
 	{
 		// Unhook apis
-		Logging::Log() << "Unhooking procs...\n";
+		Logging::Log() << "Unhooking procs...";
 		Hook::UnHotPatchAll();
 
 		// Unload dlls
-		Logging::Log() << "Unloading dlls...\n";
+		Logging::Log() << "Unloading dlls...";
 		while (LoadedDLLs.size() != 0)
 		{
 			// Unload dll
@@ -154,7 +132,7 @@ bool APIENTRY DllMain(HMODULE hModule, DWORD fdwReason, LPVOID lpReserved)
 		LoadedDLLs.clear();
 
 		// Quiting
-		Logging::Log() << "Quiting LoadWineD3D\n";
+		Logging::Log() << "Quiting LoadWineD3D";
 	}
 	break;
 	}

@@ -9,7 +9,7 @@ namespace Hook
 	HMODULE GetModuleHandle(char*);
 	void *HookAPI(HMODULE, const char *, void *, const char *, void *);
 	void UnhookAPI(HMODULE, const char *, void *, const char *, void *);
-	void *HotPatch(void*, const char*, void*);
+	void *HotPatch(void*, const char*, void*, bool = false);
 	bool UnHotPatchAll();
 	bool UnhookHotPatch(void *, const char *, void *);
 	void *IATPatch(HMODULE, DWORD, const char*, void*, const char*, void*);

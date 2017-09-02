@@ -1,90 +1,45 @@
 #include <windows.h>
 #include "Logging.h"
 
-namespace Logging
+Logging::Log::Log()
 {
-	std::ofstream LOG;
+	SYSTEMTIME st = {};
+	GetLocalTime(&st);
+
+	char time[100];
+	sprintf_s(time, "%02hu:%02hu:%02hu.%03hu ", st.wHour, st.wMinute, st.wSecond, st.wMilliseconds);
+
+	LOG << time;
 }
 
-#define CHECK_TYPE(myChar, myType) \
-		case myChar: \
-		{ \
-			sprintf_s(mybuffer, buffer, va_arg(ap, myType)); \
-			break; \
-		} \
+Logging::Log::~Log()
+{
+	LOG << std::endl;
+}
 
-#define VISIT_TYPE(visit) \
-	visit('c', char) \
-	visit('C', char) \
-	visit('s', void*) \
-	visit('S', void*) \
-	visit('d', int) \
-	visit('i', int) \
-	visit('o', UINT) \
-	visit('x', UINT) \
-	visit('X', UINT) \
-	visit('u', UINT) \
-	visit('f', float) \
-	visit('F', float) \
-	visit('e', float) \
-	visit('E', float) \
-	visit('a', float) \
-	visit('A', float) \
-	visit('g', float) \
-	visit('G', float) \
-	visit('n', void*) \
-	visit('p', void*) \
+char* Logging::Log::Init()
+{
+	static char path[MAX_PATH];
+	HMODULE hModule = NULL;
+	GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCTSTR)Init, &hModule);
+	GetModuleFileName(hModule, path, MAX_PATH);
+	strcpy_s(strrchr(path, '.'), MAX_PATH - strlen(path), ".log");
+	return path;
+}
 
 void Logging::LogFormat(char * fmt, ...)
 {
-	// Get arg list
+	// Format arg list
 	va_list ap;
 	va_start(ap, fmt);
-
-	// Declare vars
-	static constexpr DWORD BuffSize = 1024;
-	static char buffer[BuffSize];
-	static char mybuffer[BuffSize];
-
-	// Setup string
-	strcpy_s(buffer, fmt);
-	char *loc = strchr(buffer, '%');
-
-	// Loop through string
-	while (loc)
-	{
-		// Get format type
-		char myChar = buffer[loc - buffer + 1];
-
-		// Update format string
-		switch (myChar)
-		{
-			VISIT_TYPE(CHECK_TYPE);
-		default:
-			Log() << "Error in LogFormat type '" << myChar << "'"<< "\n";
-			va_end(ap);
-			return;
-		}
-
-		// Copy format string back
-		strcpy_s(buffer, mybuffer);
-
-		// Check for next format
-		char *myloc = strchr(buffer, '%');
-		if (myloc == loc || !myloc)
-		{
-			loc = nullptr;
-		}
-		else
-		{
-			loc = myloc;
-		}
-	}
-
-	// End arg list
+	auto size = vsnprintf(nullptr, 0, fmt, ap);
+	std::string output(size + 1, '\0');
+	vsprintf_s(&output[0], size + 1, fmt, ap);
 	va_end(ap);
 
-	// Log results
-	Log() << buffer << "\n";
-	Log().flush();
+	// Log formated text
+	Log() << output.c_str();
+	return;
 }
+
+std::ofstream Logging::Log::LOG(Log::Init());

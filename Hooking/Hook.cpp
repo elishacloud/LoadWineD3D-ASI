@@ -214,19 +214,19 @@ HMODULE Hook::GetModuleHandle(char* ProcName)
 
 	if (!ProcName)
 	{
-		Logging::LogFormat("GetModuleHandle: NULL process name.");
+		Logging::Log() << "GetModuleHandle: NULL process name.";
 		return nullptr;
 	}
 
 #ifdef _DEBUG
-	Logging::LogFormat("GetModuleHandle: Searching for %s.", ProcName);
+	Logging::Log() << "GetModuleHandle: Searching for " << ProcName << ".";
 #endif
 
 	// Get a handle to the process.
 	hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, processID);
 	if (!hProcess)
 	{
-		Logging::LogFormat("GetModuleHandle: Could not open process.");
+		Logging::Log() << "GetModuleHandle: Could not open process.";
 		return nullptr;
 	}
 
@@ -258,6 +258,6 @@ HMODULE Hook::GetModuleHandle(char* ProcName)
 	CloseHandle(hProcess);
 
 	// Exit function
-	Logging::LogFormat("GetModuleHandle: Could not file module %s.", ProcName);
+	Logging::Log() << "GetModuleHandle: Could not file module " << ProcName << ".";
 	return nullptr;
 }

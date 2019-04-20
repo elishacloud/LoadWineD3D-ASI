@@ -152,17 +152,17 @@ cmd /c "@echo off &amp;&amp; cd /D ""$(ProjectDir)"" &amp;&amp; type BuildNo.rc"
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Dllmain.cpp" />
+    <ClCompile Include="External\Hooking\Hook.cpp" />
+    <ClCompile Include="External\Hooking\HotPatch.cpp" />
+    <ClCompile Include="External\Hooking\IATPatch.cpp" />
     <ClCompile Include="External\Logging\Logging.cpp" />
-    <ClCompile Include="Hooking\Hook.cpp" />
-    <ClCompile Include="Hooking\HotPatch.cpp" />
-    <ClCompile Include="Hooking\IATPatch.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Dllmain.h" />
+    <ClInclude Include="External\Hooking\Hook.h" />
     <ClInclude Include="Logging\Logging.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="External\Logging\Logging.h" />
-    <ClInclude Include="Hooking\Hook.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="BuildNo.rc" />

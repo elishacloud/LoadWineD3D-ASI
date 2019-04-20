@@ -1,24 +1,21 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="Hooking\Hook.cpp">
-      <Filter>Hooking</Filter>
-    </ClCompile>
-    <ClCompile Include="Hooking\HotPatch.cpp">
-      <Filter>Hooking</Filter>
-    </ClCompile>
-    <ClCompile Include="Hooking\IATPatch.cpp">
-      <Filter>Hooking</Filter>
-    </ClCompile>
     <ClCompile Include="External\Logging\Logging.cpp">
       <Filter>External\Logging</Filter>
     </ClCompile>
     <ClCompile Include="Dllmain.cpp" />
+    <ClCompile Include="External\Hooking\Hook.cpp">
+      <Filter>External\Hooking</Filter>
+    </ClCompile>
+    <ClCompile Include="External\Hooking\HotPatch.cpp">
+      <Filter>External\Hooking</Filter>
+    </ClCompile>
+    <ClCompile Include="External\Hooking\IATPatch.cpp">
+      <Filter>External\Hooking</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Hooking\Hook.h">
-      <Filter>Hooking</Filter>
-    </ClInclude>
     <ClInclude Include="External\Logging\Logging.h">
       <Filter>External\Logging</Filter>
     </ClInclude>
@@ -27,15 +24,15 @@
     <ClInclude Include="Logging\Logging.h">
       <Filter>Logging</Filter>
     </ClInclude>
+    <ClInclude Include="External\Hooking\Hook.h">
+      <Filter>External\Hooking</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="BuildNo.rc" />
     <ResourceCompile Include="resource.rc" />
   </ItemGroup>
   <ItemGroup>
-    <Filter Include="Hooking">
-      <UniqueIdentifier>{17322c1d-377e-4226-a658-393732c98e01}</UniqueIdentifier>
-    </Filter>
     <Filter Include="External">
       <UniqueIdentifier>{4dc62424-b977-44b3-9ec9-35030b374a95}</UniqueIdentifier>
     </Filter>
@@ -44,6 +41,9 @@
     </Filter>
     <Filter Include="Logging">
       <UniqueIdentifier>{7eefc987-2fcf-4d93-96c8-9a1014edafd1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="External\Hooking">
+      <UniqueIdentifier>{86fab384-8626-46d4-aadc-433646217c83}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

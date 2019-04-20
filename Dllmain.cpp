@@ -16,7 +16,7 @@
 
 #include <vector>
 #include "Dllmain.h"
-#include "..\Hooking\Hook.h"
+#include "External\Hooking\Hook.h"
 #include "Logging\Logging.h"
 #include "resource.h"
 

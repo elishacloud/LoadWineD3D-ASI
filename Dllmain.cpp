@@ -16,8 +16,11 @@
 
 #include <vector>
 #include "Dllmain.h"
-#include "Logging.h"
 #include "..\Hooking\Hook.h"
+#include "Logging\Logging.h"
+#include "resource.h"
+
+std::ofstream LOG;
 
 VISIT_PROCS(CREATE_PROC_STUB)
 
@@ -32,6 +35,15 @@ bool APIENTRY DllMain(HMODULE hModule, DWORD fdwReason, LPVOID lpReserved)
 	{
 	case DLL_PROCESS_ATTACH:
 	{
+		// Get log file path and open log file
+		wchar_t pathname[MAX_PATH];
+		GetModuleFileName(hModule, pathname, MAX_PATH);
+		wcscpy_s(wcsrchr(pathname, '.'), MAX_PATH - wcslen(pathname), L".log");
+		Logging::Open(pathname);
+
+		// Starting
+		Logging::Log() << "Starting Load WineD3D! v" << APP_VERSION;
+
 		// Declare vars
 		DWORD Counter = 0;
 		FARPROC wrapper_func[61] = { nullptr };

@@ -25,7 +25,7 @@
 #include "Hook.h"
 #include <stdio.h>
 #include <psapi.h>
-#include "..\DllMain\Logging.h"
+#include "Logging\Logging.h"
 
 // Hook API using host patch or IAT patch
 void *Hook::HookAPI(HMODULE module, const char *dll, void *apiproc, const char *apiname, void *hookproc)

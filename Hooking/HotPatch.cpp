@@ -26,7 +26,7 @@
 
 #include <vector>
 #include "Hook.h"
-#include "..\DllMain\Logging.h"
+#include "Logging\Logging.h"
 
 namespace Hook
 {

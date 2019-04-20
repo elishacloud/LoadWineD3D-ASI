@@ -25,6 +25,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <PlatformToolset>v141</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -46,11 +47,13 @@
     <IntDir>$(IntDir)</IntDir>
     <LinkIncremental>false</LinkIncremental>
     <TargetExt>.asi</TargetExt>
+    <IncludePath>$(ProjectDir);$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>$(OutDir)</OutDir>
     <IntDir>$(IntDir)</IntDir>
     <TargetExt>.asi</TargetExt>
+    <IncludePath>$(ProjectDir);$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Midl>
@@ -140,29 +143,30 @@
       </Command>
     </PostBuildEvent>
     <PreBuildEvent>
-      <Command>cmd /c "@echo off &amp;&amp; cd /D ""$(ProjectDir)Dllmain\"" &amp;&amp; if not exist BuildNo.rc echo #define BUILD_NUMBER 0 &gt;BuildNo.rc"
-cmd /c "@echo off &amp;&amp; cd /D ""$(ProjectDir)Dllmain\"" &amp;&amp; FOR /F "tokens=3" %%i IN (BuildNo.rc) DO set /a var=%%i+1 &gt;Build.txt"
-cmd /c "@echo off &amp;&amp; cd /D ""$(ProjectDir)Dllmain\"" &amp;&amp; FOR /F %%i IN (Build.txt) DO echo #define BUILD_NUMBER %%i &gt;BuildNo.rc"
-cmd /c "@echo off &amp;&amp; cd /D ""$(ProjectDir)Dllmain\"" &amp;&amp; del Build.txt"
-cmd /c "@echo off &amp;&amp; cd /D ""$(ProjectDir)Dllmain\"" &amp;&amp; type BuildNo.rc"</Command>
+      <Command>cmd /c "@echo off &amp;&amp; cd /D ""$(ProjectDir)"" &amp;&amp; if not exist BuildNo.rc echo #define BUILD_NUMBER 0 &gt;BuildNo.rc"
+cmd /c "@echo off &amp;&amp; cd /D ""$(ProjectDir)"" &amp;&amp; FOR /F "tokens=3" %%i IN (BuildNo.rc) DO set /a var=%%i+1 &gt;Build.txt"
+cmd /c "@echo off &amp;&amp; cd /D ""$(ProjectDir)"" &amp;&amp; FOR /F %%i IN (Build.txt) DO echo #define BUILD_NUMBER %%i &gt;BuildNo.rc"
+cmd /c "@echo off &amp;&amp; cd /D ""$(ProjectDir)"" &amp;&amp; del Build.txt"
+cmd /c "@echo off &amp;&amp; cd /D ""$(ProjectDir)"" &amp;&amp; type BuildNo.rc"</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Dllmain\Dllmain.cpp" />
-    <ClCompile Include="Dllmain\Logging.cpp" />
+    <ClCompile Include="Dllmain.cpp" />
+    <ClCompile Include="External\Logging\Logging.cpp" />
     <ClCompile Include="Hooking\Hook.cpp" />
     <ClCompile Include="Hooking\HotPatch.cpp" />
     <ClCompile Include="Hooking\IATPatch.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Dllmain\Dllmain.h" />
-    <ClInclude Include="Dllmain\Logging.h" />
-    <ClInclude Include="Dllmain\resource.h" />
+    <ClInclude Include="Dllmain.h" />
+    <ClInclude Include="Logging\Logging.h" />
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="External\Logging\Logging.h" />
     <ClInclude Include="Hooking\Hook.h" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="Dllmain\BuildNo.rc" />
-    <ResourceCompile Include="Dllmain\resource.rc" />
+    <ResourceCompile Include="BuildNo.rc" />
+    <ResourceCompile Include="resource.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -1,28 +1,16 @@
-# Compiled Object files
-*.slo
-*.lo
-*.o
+# Build results
+[Bb]in/
+[Oo]bj/
+[Bb]uild/
+[Dd]ebug/
+[Rr]elease/
 
-# Compiled Dynamic libraries
-*.so
-*.dylib
-
-# Compiled Static libraries
-*.lai
-*.la
-*.a
-
-# Visual Studio files
-.vs/
-*.db
-*.opendb
-*.aps
-
-Release/
-Debug/
-*/Release/
-*/Debug/
+# Visual Studio cache files
 ipch/
-*.filters
-*.opensdf
+*.aps
+*.VC.db
+*.VC.opendb
 *.sdf
+*.opensdf
+*.suo
+*.user

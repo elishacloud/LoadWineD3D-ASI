@@ -1,5 +1,5 @@
 /**
-* Copyright (C) 2017 Elisha Riedlinger
+* Copyright (C) 2019 Elisha Riedlinger
 *
 * This software is  provided 'as-is', without any express  or implied  warranty. In no event will the
 * authors be held liable for any damages arising from the use of this software.
@@ -72,7 +72,7 @@ void *Hook::IATPatch(HMODULE module, DWORD ordinal, const char *dll, void *apipr
 			char *fname = impmodule;
 			for (; *fname; fname++); for (; !*fname; fname++);
 
-			if (!lstrcmpi(dll, impmodule))
+			if (!lstrcmpiA(dll, impmodule))
 			{
 #ifdef _DEBUG
 				Logging::LogFormat("IATPatch: dll=%s found at %p", dll, impmodule);				
@@ -96,7 +96,7 @@ void *Hook::IATPatch(HMODULE module, DWORD ordinal, const char *dll, void *apipr
 #ifdef _DEBUG
 							Logging::LogFormat("IATPatch: BYNAME ordinal=%x address=%x name=%s hint=%x", ptaddr->u1.Ordinal, ptaddr->u1.AddressOfData, (char *)piname->Name, piname->Hint);							
 #endif
-							if (!lstrcmpi(apiname, (char *)piname->Name))
+							if (!lstrcmpiA(apiname, (char *)piname->Name))
 							{
 								break;
 							}
@@ -124,7 +124,7 @@ void *Hook::IATPatch(HMODULE module, DWORD ordinal, const char *dll, void *apipr
 						//Logging::LogFormat("IATPatch: fname=%s", fname);
 						//LogText(buffer);
 #endif
-						if (!lstrcmpi(apiname, fname))
+						if (!lstrcmpiA(apiname, fname))
 						{
 #ifdef _DEBUG
 							Logging::LogFormat("IATPatch: BYSCAN ordinal=%x address=%x name=%s", ptaddr->u1.Ordinal, ptaddr->u1.AddressOfData, fname);							
@@ -243,7 +243,7 @@ bool Hook::UnhookIATPatch(HMODULE module, DWORD ordinal, const char *dll, void *
 			char *fname = impmodule;
 			for (; *fname; fname++); for (; !*fname; fname++);
 
-			if (!lstrcmpi(dll, impmodule))
+			if (!lstrcmpiA(dll, impmodule))
 			{
 #ifdef _DEBUG
 				Logging::LogFormat("IATPatch: dll=%s found at %p", dll, impmodule);				
@@ -267,7 +267,7 @@ bool Hook::UnhookIATPatch(HMODULE module, DWORD ordinal, const char *dll, void *
 #ifdef _DEBUG
 							Logging::LogFormat("IATPatch: BYNAME ordinal=%x address=%x name=%s hint=%x", ptaddr->u1.Ordinal, ptaddr->u1.AddressOfData, (char *)piname->Name, piname->Hint);							
 #endif
-							if (!lstrcmpi(apiname, (char *)piname->Name))
+							if (!lstrcmpiA(apiname, (char *)piname->Name))
 							{
 								break;
 							}
@@ -294,7 +294,7 @@ bool Hook::UnhookIATPatch(HMODULE module, DWORD ordinal, const char *dll, void *
 #ifdef _DEBUG
 						//Logging::LogFormat("IATPatch: fname=%s", fname);
 #endif
-						if (!lstrcmpi(apiname, fname))
+						if (!lstrcmpiA(apiname, fname))
 						{
 #ifdef _DEBUG
 							Logging::LogFormat("IATPatch: BYSCAN ordinal=%x address=%x name=%s", ptaddr->u1.Ordinal, ptaddr->u1.AddressOfData, fname);							

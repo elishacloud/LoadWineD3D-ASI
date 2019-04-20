@@ -21,7 +21,7 @@ How to uninstall:
 
 ### License
 
-Copyright (C) 2017 Elisha Riedlinger
+Copyright (C) 2019 Elisha Riedlinger
 
 This software is  provided 'as-is', without any express  or implied  warranty. In no event will the
 authors be held liable for any damages arising from the use of this software.
@@ -42,4 +42,4 @@ This LoadWineD3D ASI is taken primarily from code in [DxWrapper](https://github.
 
 ### Development
 
-This code was written in C++ using Microsoft Visual Studio Community 2015.
+This code was written in C++ using Microsoft Visual Studio Community 2017.

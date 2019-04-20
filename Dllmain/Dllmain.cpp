@@ -1,5 +1,5 @@
 /**
-* Copyright (C) 2017 Elisha Riedlinger
+* Copyright (C) 2019 Elisha Riedlinger
 *
 * This software is  provided 'as-is', without any express  or implied  warranty. In no event will the
 * authors be held liable for any damages arising from the use of this software.
@@ -45,10 +45,10 @@ bool APIENTRY DllMain(HMODULE hModule, DWORD fdwReason, LPVOID lpReserved)
 		for (int x = 0; x < ArraySize; x++)
 		{
 			// Load dll from script folder
-			char path[MAX_PATH];
+			wchar_t path[MAX_PATH];
 			GetModuleFileName(hModule, path, MAX_PATH);
-			strcpy_s(strrchr(path, '\\'), MAX_PATH - strlen(path), "\\");
-			strcat_s(path, MAX_PATH, dllname[x]);
+			wcscpy_s(wcsrchr(path, '\\'), MAX_PATH - wcslen(path), L"\\");
+			wcscat_s(path, MAX_PATH, dllname[x]);
 			HMODULE Script_dll = LoadLibrary(path);
 			Logging::Log() << "Checking " << path;
 
@@ -62,8 +62,8 @@ bool APIENTRY DllMain(HMODULE hModule, DWORD fdwReason, LPVOID lpReserved)
 
 				// Get System32 dll handle
 				GetSystemDirectory(path, MAX_PATH);
-				strcat_s(path, MAX_PATH, "\\");
-				strcat_s(path, MAX_PATH, dllname[x]);
+				wcscat_s(path, MAX_PATH, L"\\");
+				wcscat_s(path, MAX_PATH, dllname[x]);
 				HMODULE System32_dll = LoadLibrary(path);
 
 				// Check dlls

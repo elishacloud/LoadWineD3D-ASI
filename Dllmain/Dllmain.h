@@ -18,14 +18,14 @@
 	visit(dxgi, 6) \
 
 // Designated Initializer does not work in VS 2015 so must pay attention to the order
-static constexpr char* dllname[] = {
-	"d3d8.dll",			// 0
-	"d3d9.dll",			// 1
-	"d3d10.dll",		// 2
-	"d3d10core.dll",	// 3
-	"d3d11.dll",		// 4
-	"ddraw.dll",		// 5
-	"dxgi.dll",			// 6
+static constexpr wchar_t* dllname[] = {
+	L"d3d8.dll",			// 0
+	L"d3d9.dll",			// 1
+	L"d3d10.dll",		// 2
+	L"d3d10core.dll",	// 3
+	L"d3d11.dll",		// 4
+	L"ddraw.dll",		// 5
+	L"dxgi.dll",			// 6
 };
 static constexpr size_t ArraySize = (sizeof(dllname) / sizeof(*dllname));
 

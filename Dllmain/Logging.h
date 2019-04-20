@@ -18,7 +18,7 @@ namespace Logging
 		}
 
 	private:
-		static char* Init();
+		static wchar_t* Init();
 		static std::ofstream LOG;
 	};
 

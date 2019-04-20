@@ -17,13 +17,13 @@ Logging::Log::~Log()
 	LOG << std::endl;
 }
 
-char* Logging::Log::Init()
+wchar_t* Logging::Log::Init()
 {
-	static char path[MAX_PATH];
+	static wchar_t path[MAX_PATH];
 	HMODULE hModule = NULL;
 	GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCTSTR)Init, &hModule);
 	GetModuleFileName(hModule, path, MAX_PATH);
-	strcpy_s(strrchr(path, '.'), MAX_PATH - strlen(path), ".log");
+	wcscpy_s(wcsrchr(path, '.'), MAX_PATH - wcslen(path), L".log");
 	return path;
 }
 

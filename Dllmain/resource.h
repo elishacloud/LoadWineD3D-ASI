@@ -12,7 +12,7 @@
 #define APP_REVISION			1
 #define APP_COMPANYNAME			"Sadrate Presents"
 #define APP_DESCRPTION			"Loads local version of WineD3D"
-#define APP_COPYRIGHT			"Copyright (C) 2017 Elisha Riedlinger"
+#define APP_COPYRIGHT			"Copyright (C) 2019 Elisha Riedlinger"
 #define APP_ORIGINALVERSION		"LoadWineD3D.asi"
 #define APP_INTERNALNAME		"LoadWineD3D"
 
